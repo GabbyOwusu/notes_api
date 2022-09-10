@@ -11,13 +11,15 @@ const app: Application = express();
 
 const PORT = process.env.PORT;
 
+const TOKEN_SECRET = process.env.ACCESS_SECRET_TOKEN as string;
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/auth", authRouter);
 app.use("/user", authenticate, userRouter);
 
-app.get("/", async (_, res: Response) => {
+app.get("/", (_, res: Response) => {
     res.status(200).send({
         status: "200",
         message: "Server is up and running",
@@ -25,19 +27,15 @@ app.get("/", async (_, res: Response) => {
 });
 
 async function authenticate(req: Request, res: Response, next: NextFunction) {
-    console.log(`Running middleware`);
     try {
         const authHeader = req.headers["authorization"];
-        console.log(`Auth header ${authHeader}`);
         const token = authHeader?.split(" ")[1];
-        console.log(`Token ${token}`);
         if (!token) return res.sendStatus(401);
-        jwt.verify(token, process.env.ACCESS_SECRET_TOKEN as string, (error, payload) => {
-            if (error) {
-                console.log(`Failed to verify token ${error}`);
-                return res.sendStatus(401);
-            }
-            req.body = payload;
+        jwt.verify(token, TOKEN_SECRET, (error, payload) => {
+            if (error) return res.sendStatus(401).send({
+                data: null, message: "Invalid token",
+            });
+            req.body = { "body": req.body, "userId": payload };
             next();
         });
     } catch (error) {
@@ -45,8 +43,6 @@ async function authenticate(req: Request, res: Response, next: NextFunction) {
         return res.sendStatus(500);
     }
 }
-
-
 
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
