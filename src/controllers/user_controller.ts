@@ -10,12 +10,16 @@ dotenv.config();
 const getUserById = async (req: Request, res: Response) => {
     try {
         const { userId } = req.body["userId"];
-
-        //Crosscheck this
-
         if (!userId) return;
         const user = await prisma.user.findFirst({
-            where: { id: userId }, select: { id: true, email: true },
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                username: true,
+            },
         });
         if (!user) return res.status(404).send({
             status: 404,
@@ -32,16 +36,31 @@ const getUserById = async (req: Request, res: Response) => {
     }
 }
 
-// const setUpProfile = async (req: Request, res: Response) => {
-//     try {
-//         const { firstName, lastName, userName } = req.body;
-//         const token = req.headers
+const setupProfile = async (req: Request, res: Response) => {
+    try {
+        const { firstName, lastName, userName } = req.body["body"];
+        const userId = req.body["userId"].userId;
+        const user = prisma.user.findFirst({ where: { id: userId } });
+        if (!user) return res.status(404).send({
+            data: null,
+            status: 404,
+            msg: "user doesnt exist"
+        });
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { firstName: firstName, username: userName, lastName: lastName, },
+            select: { id: true, email: true, firstName: true, lastName: true, username: true },
+        });
+        return res.status(201).send({
+            data: updatedUser,
+            message: "User updated succesfully",
+        });
 
-//     } catch (error) {
-//         console.log(`Couldn't create user >>>>>> ${error}`);
-//         return res.status(500).send();
-//     }
-// }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send();
+    }
+}
 
 
-export { getUserById }
+export { getUserById, setupProfile }
