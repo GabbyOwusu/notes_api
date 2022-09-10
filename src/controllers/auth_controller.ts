@@ -3,20 +3,21 @@ import jwt from "jsonwebtoken";
 import { Request, Response } from 'express';
 import { PrismaClient, User } from '@prisma/client'
 
+
 const prisma = new PrismaClient();
-
-
-
 
 const createUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
+        if (!validateEmail(email)) {
+            return res.send({
+                data: null,
+                message: "Invalid email",
+            })
+        }
         const exists = await prisma.user.findFirst({
             where: { email: email }
         });
-
-        //TODO: add email verification
-
         if (exists) {
             return res.send({
                 data: null,
@@ -48,7 +49,10 @@ const createUser = async (req: Request, res: Response) => {
 const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        const user = await prisma.user.findFirst({ where: { email: email } });
+        const user = await prisma.user.findFirst({
+            where: { email: email },
+            select: { id: true, email: true, firstName: true, lastName: true },
+        }) as User;
         if (user == null) {
             return res.status(404).json({
                 data: null,
@@ -65,10 +69,15 @@ const login = async (req: Request, res: Response) => {
             });
         }
     } catch (error) {
+        console.log(error);
         res.status(500).send()
     }
 }
 
+const emailRegexp: RegExp = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
 
+function validateEmail(email: string): boolean {
+    return emailRegexp.test(email);
+}
 export { createUser, login }
