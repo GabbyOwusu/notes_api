@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 
 dotenv.config();
 
-
 const getUserById = async (req: Request, res: Response) => {
     try {
         const { userId } = req.body["userId"];
