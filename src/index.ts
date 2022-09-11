@@ -5,6 +5,7 @@ dotenv.config();
 import jwt from 'jsonwebtoken';
 import { router as authRouter } from "./routes/auth";
 import { router as userRouter } from "./routes/user";
+import { router as notesRouter } from "./routes/notes";
 
 
 const app: Application = express();
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/auth", authRouter);
 app.use("/user", authenticate, userRouter);
+app.use("/notes", authenticate, notesRouter);
 
 app.get("/", (_, res: Response) => {
     res.status(200).send({
