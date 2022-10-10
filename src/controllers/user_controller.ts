@@ -9,6 +9,7 @@ dotenv.config();
 const getUserById = async (req: Request, res: Response) => {
     try {
         const { userId } = req.body["userId"];
+        console.log(req.body);
         if (!userId) return;
         const user = await prisma.user.findFirst({
             where: { id: userId },

@@ -4,6 +4,6 @@ import { getUserById, setupProfile } from "../controllers/user_controller";
 const router = express.Router();
 
 router.get("/getUser", getUserById);
-router.get("/setupProfile", setupProfile);
+router.post("/setupProfile", setupProfile);
 
 export { router }
