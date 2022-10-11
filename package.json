@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
+    "start": "node dist/app.js",
+    "dev": "nodemon src/app.ts",
     "tsc": "tsc",
-    "start:prod": "node src/index.js",
+    "start:prod": "node src/app.js",
     "build": "tsc -p .",
-    "watch-node": "nodemon dist/index.js"
+    "watch-node": "nodemon dist/app.js"
   },
   "keywords": [],
   "author": "",
