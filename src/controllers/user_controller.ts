@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 
 dotenv.config();
 
-
 const getUserById = async (req: Request, res: Response) => {
     try {
         const { userId } = req.body["userId"];
+        console.log(req.body);
         if (!userId) return;
         const user = await prisma.user.findFirst({
             where: { id: userId },
@@ -39,7 +39,7 @@ const getUserById = async (req: Request, res: Response) => {
 const setupProfile = async (req: Request, res: Response) => {
     try {
         const { firstName, lastName, userName } = req.body["body"];
-        const userId = req.body["userId"].userId;
+        const { userId } = req.body["userId"];
         const user = prisma.user.findFirst({ where: { id: userId } });
         if (!user) return res.status(404).send({
             data: null,

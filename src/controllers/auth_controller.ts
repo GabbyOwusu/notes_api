@@ -10,7 +10,7 @@ const createUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         if (!validateEmail(email)) {
-            return res.send({
+            return res.status(401).send({
                 data: null,
                 message: "Invalid email",
             })
@@ -28,14 +28,18 @@ const createUser = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, salt);
         const user: User = await prisma.user.create({
             data: { email: email, password: hashedPassword },
-            select: { id: true, email: true },
         }) as User;
         const payload = { userId: user.id };
         const token = jwt.sign(payload, process.env.ACCESS_SECRET_TOKEN as string);
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: { token: token },
+            select: { id: true, email: true, token: true },
+
+        });
         return res.status(201).send({
             status: 201,
-            token: token,
-            data: user,
+            data: updatedUser,
             msg: "user created successfully",
         });
     } catch (error) {
@@ -48,11 +52,19 @@ const createUser = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
     try {
+        console.log(req.body);
         const { email, password } = req.body;
         const user = await prisma.user.findFirst({
             where: { email: email },
-            select: { id: true, email: true, firstName: true, lastName: true },
-        }) as User;
+            select: {
+                token: true,
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                password: true
+            },
+        });
         if (user == null) {
             return res.status(404).json({
                 data: null,
@@ -60,7 +72,11 @@ const login = async (req: Request, res: Response) => {
             });
         }
         if (await bcrypt.compare(password, user.password)) {
-            return res.status(200).json({ data: user });
+            //prevent sending back password
+            return res.status(200).json({
+                "message": "login successful",
+                data: user
+            });
         } else {
             return res.status(403).send({
                 status: 403,
